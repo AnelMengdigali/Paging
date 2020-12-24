@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>pagingexercise361</title>
+<script src="scripts/jquery.min.js"></script>
+<script src="scripts/lodash.min.js"></script>
+
+<script type="text/javascript">
+var app = {
+        items : [],
+        nextpage : 0,
+        prevpage : 0,
+        page : 0
+};
+
+function updateList() {
+    $("#my-list").html("");
+    $("#my-list").append(" Page " + app.page + "\n");
+    app.items.forEach(function (e) {
+        $("#my-list").append("<li>" + e + "</li>");
+    });
+}
+
+function getListItems() {
+    $.ajax({
+        url : 'services/items?page=' + app.page,
+        dataType : 'json',
+        success : function(r) {
+            app.items = r.list;
+            
+            app.prevpage = r.prev;
+			app.nextpage = r.next;
+				
+			if (app.prevpage == "-1") {
+				document.getElementById("prev-button").disabled = true;
+			}
+			else{
+				document.getElementById("prev-button").disabled = false;
+			}
+			
+			if (app.nextpage == "100") {
+				document.getElementById("next-button").disabled = true;
+			}
+			else{
+				document.getElementById("next-button").disabled = false;
+			}
+			
+            updateList();
+        }
+    });
+}
+
+function sendListItem() {
+    var s = $("#texttosend").val();
+    
+    $.post("todo", { texttosend: s}, function() {
+        getListItems();
+    });
+    
+    
+}
+
+function prevPage() {
+    $.ajax({
+        url : 'services/items?page=' + app.page,
+        dataType : 'json',
+        success : function(r) {            
+			app.page = app.page - 1;
+
+			getListItems();
+        }
+    });
+}
+
+function nextPage() {
+    $.ajax({
+        url : 'services/items?page=' + app.page,
+        dataType : 'json',
+        success : function(r) {   
+			app.page = app.page + 1;
+			
+			getListItems();
+        }
+    });
+}
+
+$(document).ready(function () { 
+    getListItems();
+    
+    $("#send-item").on('click', function () {
+        sendListItem();
+    });
+    
+    $("#prev-button").on('click', function () {
+    	prevPage();
+    });
+    
+    $("#next-button").on('click', function () {
+    	nextPage();
+    });
+    
+});
+</script>
+</head>
+<body>
+<h2>Paging Application</h2>
+
+
+<ul id="my-list"></ul>
+
+
+<br>
+<button id="prev-button">Previous</button>
+<button id="next-button">Next</button>
+</body>
+</html>
